@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Промокоды · Brooklyn Bowl</title>
+<style>
+:root{
+  --red:#FF2026;
+  --paper:#E8E5DE;
+  --card:#FFFFFF;
+  --ink:#000000;
+  --ink-2:#191919;
+  --muted:#7a766e;
+  --line:#e6e2da;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{
+  background:var(--paper);
+  color:var(--ink);
+  font:16px/1.45 -apple-system,BlinkMacSystemFont,"SF Pro Text","Helvetica Neue",Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
+  padding:34px 28px 80px;
+}
+.wrap{max-width:1560px;margin:0 auto}
+
+/* шапка */
+.top{display:flex;align-items:center;gap:22px;margin-bottom:26px;flex-wrap:wrap}
+.ball{width:52px;height:52px;border-radius:50%;background:var(--red);flex:0 0 auto;position:relative}
+.ball i{position:absolute;width:7px;height:7px;border-radius:50%;background:#c2161b}
+.ball i:nth-child(1){left:15px;top:17px}
+.ball i:nth-child(2){left:29px;top:15px}
+.ball i:nth-child(3){left:22px;top:29px}
+h1{font-size:34px;line-height:1.05;letter-spacing:-.02em;margin:0;font-weight:800}
+.upd{color:var(--muted);font-size:14px;margin-top:3px}
+.spacer{flex:1 1 auto}
+button{font:inherit;cursor:pointer}
+.pill{background:var(--card);border:none;border-radius:999px;padding:13px 26px;font-size:15px;font-weight:600;color:var(--ink)}
+.pill:hover{background:#f6f4f0}
+.pill:focus-visible,.chip:focus-visible,select:focus-visible,input:focus-visible{outline:2px solid var(--red);outline-offset:2px}
+
+/* карточки */
+.panel{background:var(--card);border-radius:20px;padding:26px 30px;margin-bottom:22px}
+.panel h2{font-size:23px;font-weight:800;letter-spacing:-.01em;margin:0 0 18px}
+.controls{display:flex;gap:40px;align-items:flex-end;flex-wrap:wrap}
+.field label{display:block;color:var(--muted);font-size:14px;margin-bottom:9px}
+.chips{display:flex;gap:9px}
+.chip{background:var(--paper);border:none;border-radius:999px;padding:11px 24px;font-size:15px;font-weight:600;color:var(--ink)}
+.chip[aria-pressed="true"]{background:var(--ink);color:#fff}
+select{font:inherit;background:var(--paper);border:none;border-radius:12px;padding:12px 18px;min-width:230px;color:var(--ink)}
+
+/* плитки */
+.tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:22px;margin-bottom:22px}
+.tile{background:var(--card);border-radius:20px;padding:24px 28px 26px}
+.tile .name{color:var(--muted);font-size:15px;margin-bottom:12px}
+.tile .val{font-size:37px;font-weight:800;letter-spacing:-.025em;line-height:1}
+.tile .delta{margin-top:11px;font-size:15px;font-weight:600;color:var(--ink-2)}
+.tile .delta.down{color:var(--red)}
+
+/* таблицы */
+.scroll{overflow-x:auto;margin:0 -30px;padding:0 30px}
+table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+th,td{padding:15px 14px;text-align:right;white-space:nowrap}
+th:first-child,td:first-child{text-align:left;padding-left:0}
+th:last-child,td:last-child{padding-right:0}
+th{color:var(--muted);font-weight:400;font-size:15px;border-bottom:1px solid var(--line)}
+td{border-bottom:1px solid var(--line);font-size:16px}
+tbody tr:last-child td{border-bottom:none}
+tr.sum td{font-weight:700}
+td.tag{color:var(--muted);font-size:15px}
+tr.venue td{padding-top:28px;font-weight:800;font-size:17px;border-bottom:1px solid var(--ink)}
+tr.venue.first td{padding-top:6px}
+.note{color:var(--muted);font-size:14px;line-height:1.55;max-width:74ch;margin:26px 2px 0}
+
+/* вход */
+.gate{max-width:420px;margin:12vh auto 0;background:var(--card);border-radius:20px;padding:34px}
+.gate h2{margin:0 0 6px;font-size:24px;font-weight:800}
+.gate p{color:var(--muted);font-size:15px;margin:0 0 20px}
+.gate input{font:inherit;width:100%;background:var(--paper);border:none;border-radius:12px;padding:14px 16px;margin-bottom:14px}
+.gate button{width:100%;background:var(--ink);color:#fff;border:none;border-radius:999px;padding:14px;font-weight:600}
+.err{color:var(--red);font-size:14px;margin-top:12px}
+
+@media (max-width:1180px){ .tiles{grid-template-columns:repeat(2,1fr)} }
+@media (max-width:700px){
+  body{padding:22px 14px 60px}
+  h1{font-size:27px}
+  .tiles{grid-template-columns:1fr;gap:14px}
+  .tile .val{font-size:31px}
+  .panel{padding:20px 18px;border-radius:16px}
+  .scroll{margin:0 -18px;padding:0 18px}
+  .controls{gap:20px}
+  select{min-width:0;width:100%}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap" id="root"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   Дашборд промокодов. Данные — выгрузка из айки, вкладка
+   «ПРОМИКИ 2026». Свой скрипт, «Дашборд crm» не затрагивается.
+   ═══════════════════════════════════════════════════════════════ */
+
+var API = 'https://script.google.com/macros/s/AKfycbxn2C0tFgmfvtG5D0gT-G7DrmRK4QXJQfM2jgL-lLvckZveJLaHEgtMUqsgRtCERLxW/exec';
+
+var state = { key: localStorage.getItem('bb-promo-key') || '', data: null,
+              kind: 'week', idx: undefined, error: '' };
+
+var root = document.getElementById('root');
+var nf = new Intl.NumberFormat('ru-RU');
+
+function fmt(v, unit){
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  var n = nf.format(Math.round(v));
+  return unit === '₽' ? n + ' ₽' : n;
+}
+function fmtDelta(d, unit){
+  var n = nf.format(Math.abs(Math.round(d)));
+  return (d < 0 ? '▼ -' : '▲ +') + n + (unit === '₽' ? ' ₽' : '');
+}
+function esc(s){
+  return String(s).replace(/[&<>"]/g, function(c){
+    return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c];
+  });
+}
+function shortName(n){ return String(n).replace(/^BrooklynBowl\s*/i, ''); }
+function avg(b){ return b.guests ? fmt(b.revenue / b.guests, '₽') : '—'; }
+
+/* ── загрузка ──────────────────────────────────────────── */
+function load(){
+  state.error = '';
+  render();
+  fetch(API + '?key=' + encodeURIComponent(state.key))
+    .then(function(r){ return r.json(); })
+    .then(function(d){
+      if (!d.ok){
+        state.data = null;
+        state.error = d.error || 'Скрипт не отдал данные';
+        localStorage.removeItem('bb-promo-key');
+        state.key = '';
+      } else {
+        state.data = d;
+        state.idx = undefined;
+        localStorage.setItem('bb-promo-key', state.key);
+      }
+      render();
+    })
+    .catch(function(){
+      state.data = null;
+      state.error = 'Не получилось связаться со скриптом. Проверь интернет и попробуй ещё раз.';
+      render();
+    });
+}
+
+/* ── экран входа ───────────────────────────────────────── */
+function renderGate(){
+  root.innerHTML =
+    '<div class="gate"><h2>Промокоды</h2>' +
+    '<p>Введи ключ доступа, он запомнится на этом устройстве.</p>' +
+    '<input id="k" type="password" placeholder="Ключ" autocomplete="off">' +
+    '<button id="go">Открыть</button>' +
+    (state.error ? '<div class="err">' + esc(state.error) + '</div>' : '') +
+    '</div>';
+  var inp = document.getElementById('k');
+  function go(){ var v = inp.value.trim(); if (!v) return; state.key = v; load(); }
+  document.getElementById('go').onclick = go;
+  inp.onkeydown = function(e){ if (e.key === 'Enter') go(); };
+  inp.focus();
+}
+
+/* ── шапка ─────────────────────────────────────────────── */
+function head(){
+  var upd = '';
+  if (state.data && state.data.updated){
+    var d = new Date(state.data.updated);
+    var p = function(n){ return (n < 10 ? '0' : '') + n; };
+    upd = 'обновлено ' + p(d.getDate()) + '.' + p(d.getMonth() + 1) +
+          ', ' + p(d.getHours()) + ':' + p(d.getMinutes());
+  }
+  return '<div class="top">' +
+    '<div class="ball"><i></i><i></i><i></i></div>' +
+    '<div><h1>Промокоды</h1><div class="upd">' + upd + '</div></div>' +
+    '<div class="spacer"></div>' +
+    '<button class="pill" id="reload">Обновить</button></div>';
+}
+
+function periods(){
+  var all = (state.data && state.data.periods) || [];
+  return all.filter(function(p){ return p.kind === state.kind; });
+}
+
+function controls(){
+  var list = periods();
+  return '<div class="panel controls">' +
+    '<div class="field"><label>Детализация</label><div class="chips" id="kind">' +
+    [['week','Недели'],['month','Месяцы']].map(function(x){
+      return '<button class="chip" data-k="' + x[0] + '" aria-pressed="' +
+             (x[0] === state.kind) + '">' + x[1] + '</button>';
+    }).join('') +
+    '</div></div>' +
+    '<div class="field"><label>Период</label><select id="per">' +
+    list.map(function(x, i){
+      return '<option value="' + i + '"' + (i === state.idx ? ' selected' : '') + '>' +
+             esc(x.label) + '</option>';
+    }).join('') +
+    '</select></div></div>';
+}
+
+/* ── страница ──────────────────────────────────────────── */
+function render(){
+  if (!state.key) { renderGate(); return; }
+
+  if (!state.data){
+    root.innerHTML = head() +
+      '<div class="panel">' + (state.error ? esc(state.error) : 'Загружаю…') + '</div>';
+    bindHead();
+    return;
+  }
+
+  if (state.data.error){
+    root.innerHTML = head() +
+      '<div class="panel">Не получилось прочитать вкладку: ' + esc(state.data.error) + '</div>';
+    bindHead();
+    return;
+  }
+
+  var list = periods();
+  if (!list.length){
+    root.innerHTML = head() + controls() +
+      '<div class="panel">Нет выгрузок за ' +
+      (state.kind === 'week' ? 'недели' : 'месяцы') + '.</div>';
+    bindHead(); bindControls();
+    return;
+  }
+
+  if (state.idx === undefined || !list[state.idx]) state.idx = list.length - 1;
+  var p = list[state.idx];
+  var prev = list[state.idx - 1] || null;
+
+  function delta(f){ return (prev && prev.total[f]) ? p.total[f] - prev.total[f] : null; }
+  function tile(name, val, unit, d){
+    return '<div class="tile"><div class="name">' + name + '</div>' +
+      '<div class="val">' + fmt(val, unit) + '</div>' +
+      (d === null ? '' : '<div class="delta' + (d < 0 ? ' down' : '') + '">' +
+        fmtDelta(d, unit) + '</div>') + '</div>';
+  }
+
+  var html = head() + controls() +
+    '<div class="tiles">' +
+      tile('Выручка по промокодам', p.total.revenue, '₽', delta('revenue')) +
+      tile('Гостей', p.total.guests, '', delta('guests')) +
+      tile('Сумма скидки', p.total.discount, '₽', delta('discount')) +
+      tile('Сумма без скидки', p.total.gross, '₽', delta('gross')) +
+    '</div>';
+
+  /* онлайн и офлайн */
+  function share(x){ return p.total.revenue ? Math.round(x / p.total.revenue * 100) + '%' : '—'; }
+  html += '<div class="panel"><h2>Онлайн и офлайн</h2><div class="scroll"><table><thead><tr>' +
+    '<th>Группа</th><th>Выручка</th><th>Доля</th><th>Гостей</th><th>Скидка</th><th>Средний чек</th>' +
+    '</tr></thead><tbody>' +
+    [['Онлайн', p.online], ['Офлайн', p.offline]].map(function(x){
+      var b = x[1];
+      return '<tr><td>' + x[0] + '</td><td>' + fmt(b.revenue, '₽') + '</td>' +
+        '<td>' + share(b.revenue) + '</td><td>' + fmt(b.guests, '') + '</td>' +
+        '<td>' + fmt(b.discount, '₽') + '</td><td>' + avg(b) + '</td></tr>';
+    }).join('') +
+    '<tr class="sum"><td>Всего</td><td>' + fmt(p.total.revenue, '₽') + '</td><td></td>' +
+    '<td>' + fmt(p.total.guests, '') + '</td><td>' + fmt(p.total.discount, '₽') + '</td>' +
+    '<td>' + avg(p.total) + '</td></tr>' +
+    '</tbody></table></div></div>';
+
+  /* по ТРЦ */
+  html += '<div class="panel"><h2>По ТРЦ</h2><div class="scroll"><table><thead><tr>' +
+    '<th>ТРЦ</th><th>Выручка</th><th>Гостей</th><th>Скидка</th><th>Онлайн</th><th>Офлайн</th>' +
+    '</tr></thead><tbody>' +
+    p.venues.map(function(v){
+      return '<tr><td>' + esc(shortName(v.name)) + '</td>' +
+        '<td>' + fmt(v.total.revenue, '₽') + '</td><td>' + fmt(v.total.guests, '') + '</td>' +
+        '<td>' + fmt(v.total.discount, '₽') + '</td>' +
+        '<td>' + fmt(v.online.revenue, '₽') + '</td>' +
+        '<td>' + fmt(v.offline.revenue, '₽') + '</td></tr>';
+    }).join('') +
+    '</tbody></table></div></div>';
+
+  /* по промокодам, вся сеть */
+  html += '<div class="panel"><h2>По промокодам</h2><div class="scroll"><table><thead><tr>' +
+    '<th>Код</th><th>Группа</th><th>Выручка</th><th>Гостей</th><th>Скидка</th><th>Средний чек</th>' +
+    '</tr></thead><tbody>' +
+    p.codes.map(function(c){
+      return '<tr><td>' + esc(c.code) + '</td>' +
+        '<td class="tag">' + (c.group === 'offline' ? 'офлайн' : 'онлайн') + '</td>' +
+        '<td>' + fmt(c.revenue, '₽') + '</td><td>' + fmt(c.guests, '') + '</td>' +
+        '<td>' + fmt(c.discount, '₽') + '</td><td>' + avg(c) + '</td></tr>';
+    }).join('') +
+    '</tbody></table></div></div>';
+
+  /* какие коды в каком ТРЦ */
+  html += '<div class="panel"><h2>Какие промокоды в каком ТРЦ</h2><div class="scroll"><table><thead><tr>' +
+    '<th>Код</th><th>Группа</th><th>Выручка</th><th>Гостей</th><th>Скидка</th><th>Средний чек</th>' +
+    '</tr></thead><tbody>' +
+    p.venues.map(function(v, i){
+      return '<tr class="venue' + (i === 0 ? ' first' : '') + '">' +
+        '<td>' + esc(shortName(v.name)) + '</td><td class="tag"></td>' +
+        '<td>' + fmt(v.total.revenue, '₽') + '</td><td>' + fmt(v.total.guests, '') + '</td>' +
+        '<td>' + fmt(v.total.discount, '₽') + '</td><td>' + avg(v.total) + '</td></tr>' +
+        v.codes.map(function(c){
+          return '<tr><td>' + esc(c.code) + '</td>' +
+            '<td class="tag">' + (c.group === 'offline' ? 'офлайн' : 'онлайн') + '</td>' +
+            '<td>' + fmt(c.revenue, '₽') + '</td><td>' + fmt(c.guests, '') + '</td>' +
+            '<td>' + fmt(c.discount, '₽') + '</td><td>' + avg(c) + '</td></tr>';
+        }).join('');
+    }).join('') +
+    '</tbody></table></div>' +
+    '<p class="note">Онлайн и офлайн делятся по списку кодов в строке 2 вкладки «ПРОМИКИ 2026»: ' +
+    'что перечислено там — офлайн, всё остальное — онлайн. Новый код попадёт в онлайн сам, ' +
+    'чтобы перенести его в офлайн, допиши код в ту строку — страницу править не нужно. ' +
+    'Строки «… всего» и «Итого» из выгрузки в расчёт не берутся.</p></div>';
+
+  root.innerHTML = html;
+  bindHead(); bindControls();
+}
+
+function bindHead(){
+  var b = document.getElementById('reload');
+  if (b) b.onclick = function(){ load(); };
+}
+
+function bindControls(){
+  var chips = document.querySelectorAll('#kind .chip');
+  for (var i = 0; i < chips.length; i++){
+    chips[i].onclick = function(){
+      state.kind = this.getAttribute('data-k');
+      state.idx = undefined;
+      render();
+    };
+  }
+  var s = document.getElementById('per');
+  if (s) s.onchange = function(e){ state.idx = +e.target.value; render(); };
+}
+
+if (state.key) load(); else render();
+</script>
+</body>
+</html>
