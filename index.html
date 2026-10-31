@@ -130,6 +130,19 @@ function esc(s){
 function shortName(n){ return String(n).replace(/^BrooklynBowl\s*/i, ''); }
 function avg(b){ return b.guests ? fmt(b.revenue / b.guests, '₽') : '—'; }
 
+/* группы кодов — из шапки вкладки, скрипт отдаёт их список */
+var GROUPS_DEFAULT = [{key:'online',label:'Онлайн'},{key:'bloggers',label:'Блогеры'},
+                      {key:'media',label:'СМИ онлайн'},{key:'offline',label:'Офлайн'}];
+function groupList(){ return (state.data && state.data.groups) || GROUPS_DEFAULT; }
+function groupLabel(k){
+  var g = groupList().filter(function(x){ return x.key === k; })[0];
+  return g ? g.label.toLowerCase() : 'онлайн';
+}
+function gbox(o, k){
+  if (o.groups && o.groups[k]) return o.groups[k];
+  return o[k] || { revenue: 0, discount: 0, gross: 0, guests: 0 };
+}
+
 /* ── загрузка ──────────────────────────────────────────── */
 function load(){
   state.error = '';
@@ -257,14 +270,14 @@ function render(){
       tile('Сумма без скидки', p.total.gross, '₽', delta('gross')) +
     '</div>';
 
-  /* онлайн и офлайн */
+  /* по группам */
   function share(x){ return p.total.revenue ? Math.round(x / p.total.revenue * 100) + '%' : '—'; }
-  html += '<div class="panel"><h2>Онлайн и офлайн</h2><div class="scroll"><table><thead><tr>' +
+  html += '<div class="panel"><h2>По группам</h2><div class="scroll"><table><thead><tr>' +
     '<th>Группа</th><th>Выручка</th><th>Доля</th><th>Гостей</th><th>Скидка</th><th>Средний чек</th>' +
     '</tr></thead><tbody>' +
-    [['Онлайн', p.online], ['Офлайн', p.offline]].map(function(x){
-      var b = x[1];
-      return '<tr><td>' + x[0] + '</td><td>' + fmt(b.revenue, '₽') + '</td>' +
+    groupList().map(function(g){
+      var b = gbox(p, g.key);
+      return '<tr><td>' + esc(g.label) + '</td><td>' + fmt(b.revenue, '₽') + '</td>' +
         '<td>' + share(b.revenue) + '</td><td>' + fmt(b.guests, '') + '</td>' +
         '<td>' + fmt(b.discount, '₽') + '</td><td>' + avg(b) + '</td></tr>';
     }).join('') +
@@ -275,14 +288,15 @@ function render(){
 
   /* по ТРЦ */
   html += '<div class="panel"><h2>По ТРЦ</h2><div class="scroll"><table><thead><tr>' +
-    '<th>ТРЦ</th><th>Выручка</th><th>Гостей</th><th>Скидка</th><th>Онлайн</th><th>Офлайн</th>' +
+    '<th>ТРЦ</th><th>Выручка</th><th>Гостей</th><th>Скидка</th>' +
+    groupList().map(function(g){ return '<th>' + esc(g.label) + '</th>'; }).join('') +
     '</tr></thead><tbody>' +
     p.venues.map(function(v){
       return '<tr><td>' + esc(shortName(v.name)) + '</td>' +
         '<td>' + fmt(v.total.revenue, '₽') + '</td><td>' + fmt(v.total.guests, '') + '</td>' +
         '<td>' + fmt(v.total.discount, '₽') + '</td>' +
-        '<td>' + fmt(v.online.revenue, '₽') + '</td>' +
-        '<td>' + fmt(v.offline.revenue, '₽') + '</td></tr>';
+        groupList().map(function(g){ return '<td>' + fmt(gbox(v, g.key).revenue, '₽') + '</td>'; }).join('') +
+        '</tr>';
     }).join('') +
     '</tbody></table></div></div>';
 
@@ -292,7 +306,7 @@ function render(){
     '</tr></thead><tbody>' +
     p.codes.map(function(c){
       return '<tr><td>' + esc(c.code) + '</td>' +
-        '<td class="tag">' + (c.group === 'offline' ? 'офлайн' : 'онлайн') + '</td>' +
+        '<td class="tag">' + esc(groupLabel(c.group)) + '</td>' +
         '<td>' + fmt(c.revenue, '₽') + '</td><td>' + fmt(c.guests, '') + '</td>' +
         '<td>' + fmt(c.discount, '₽') + '</td><td>' + avg(c) + '</td></tr>';
     }).join('') +
@@ -309,15 +323,15 @@ function render(){
         '<td>' + fmt(v.total.discount, '₽') + '</td><td>' + avg(v.total) + '</td></tr>' +
         v.codes.map(function(c){
           return '<tr><td>' + esc(c.code) + '</td>' +
-            '<td class="tag">' + (c.group === 'offline' ? 'офлайн' : 'онлайн') + '</td>' +
+            '<td class="tag">' + esc(groupLabel(c.group)) + '</td>' +
             '<td>' + fmt(c.revenue, '₽') + '</td><td>' + fmt(c.guests, '') + '</td>' +
             '<td>' + fmt(c.discount, '₽') + '</td><td>' + avg(c) + '</td></tr>';
         }).join('');
     }).join('') +
     '</tbody></table></div>' +
-    '<p class="note">Онлайн и офлайн делятся по списку кодов в строке 2 вкладки «ПРОМИКИ 2026»: ' +
-    'что перечислено там — офлайн, всё остальное — онлайн. Новый код попадёт в онлайн сам, ' +
-    'чтобы перенести его в офлайн, допиши код в ту строку — страницу править не нужно. ' +
+    '<p class="note">Группы берутся из шапки вкладки «ПРОМИКИ 2026» (строки над первым «Период»): ' +
+    'в столбце A группа — Блогеры, СМИ онлайн, Офлайн, в B коды через запятую. Всё, что не перечислено, — онлайн. ' +
+    'Новый код попадёт в онлайн сам, чтобы перенести его, допиши код в нужную строку — страницу править не нужно. ' +
     'Строки «… всего» и «Итого» из выгрузки в расчёт не берутся.</p></div>';
 
   root.innerHTML = html;
