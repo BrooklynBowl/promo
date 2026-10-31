@@ -131,7 +131,7 @@ function shortName(n){ return String(n).replace(/^BrooklynBowl\s*/i, ''); }
 function avg(b){ return b.guests ? fmt(b.revenue / b.guests, '₽') : '—'; }
 
 /* группы кодов — из шапки вкладки, скрипт отдаёт их список */
-var GROUPS_DEFAULT = [{key:'online',label:'Онлайн'},{key:'crm',label:'Онлайн (СРМ)'},{key:'bloggers',label:'Блогеры'},
+var GROUPS_DEFAULT = [{key:'online',label:'Онлайн (СРМ)'},{key:'bloggers',label:'Блогеры'},
                       {key:'media',label:'СМИ онлайн'},{key:'offline',label:'Офлайн'}];
 function groupList(){ return (state.data && state.data.groups) || GROUPS_DEFAULT; }
 function groupLabel(k){
@@ -330,8 +330,8 @@ function render(){
     }).join('') +
     '</tbody></table></div>' +
     '<p class="note">Группы берутся из шапки вкладки «ПРОМИКИ 2026» (строки над первым «Период»): ' +
-    'в столбце A группа — Онлайн (СРМ), Блогеры, СМИ онлайн, Офлайн, в B коды через запятую. Всё, что не перечислено, — онлайн. ' +
-    'Новый код попадёт в онлайн сам, чтобы перенести его, допиши код в нужную строку — страницу править не нужно. ' +
+    'в столбце A группа — Блогеры, СМИ онлайн, Офлайн, в B коды через запятую. Всё, что не перечислено, — онлайн (СРМ). ' +
+    'Новый код попадёт в онлайн (СРМ) сам, чтобы перенести его, допиши код в нужную строку — страницу править не нужно. ' +
     'Строки «… всего» и «Итого» из выгрузки в расчёт не берутся.</p></div>';
 
   root.innerHTML = html;
